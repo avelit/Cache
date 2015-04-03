@@ -1,64 +1,114 @@
 package ua.goit.alg;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 public class LRUCache {
 
   private int sizeLimit;
-  private Map<Integer,Integer> cacheMap = new HashMap<>();
-  private List<Integer> cacheList = new LinkedList<>();
+  private Map<Integer,Node> cacheMap = new HashMap<>();
+
+  private Node first;
+  private Node last;
   
+  private static class Node {
+    Integer key;
+    Integer value;
+    Node next;
+    Node prev;
+
+    Node(Integer key, Integer value) {
+      this.key = key;
+      this.value = value;
+    }
+  }
+  
+  private void removeFirst(){
+    int size = getSize();
+    if (size > 0) {
+      cacheMap.remove(first.key);
+    }
+    if (size > 1) {
+      first = first.next; 
+      first.prev = null;
+    } else {
+      first = null;
+      last = null;
+    }
+  }
+  
+  private void addToEnd(Node element){
+    if (getSize() == 0) {
+      first = element;
+    } else {
+      last.next = element;
+      element.prev = last;
+      element.next = null;
+    }
+    last = element;
+  }
+
+  private void moveElementToEnd(Node element){
+    if (element == last){
+      return;
+    }
+    if (last == null){
+      addToEnd(element);
+      return;
+    } 
+    if (first == element) {
+      first = first.next;
+      first.prev = null;
+    } else {
+      element.prev.next = element.next;
+      element.next.prev = element.prev;
+      element.prev = last;
+      element.next = null;
+    }
+    last.next = element;
+    element.prev = last;
+    element.next = null;
+    last = element;
+  }
+
   public LRUCache(int sizeLimit) {
     this.sizeLimit = sizeLimit;
   }
 
   public void put(int key, int value) {
-    int index = getIndex(key);
-    if (getSize() == sizeLimit || index != -1){
-      if (index == -1){
-        int keyToRemove = cacheList.get(0);
-        cacheMap.remove(keyToRemove);
-        cacheList.remove(0);
-      } else {
-        cacheMap.remove(key);
-        cacheList.remove(index);
+    Node node = cacheMap.get(key);
+    if (node != null){
+      moveElementToEnd(node);
+      node.value = value;
+    } else {
+      if (getSize() == sizeLimit){
+        removeFirst();
       }
-    } 
-    cacheMap.put(key, value);
-    cacheList.add(key);
+      node = new Node(key,value);
+      addToEnd(node);
+      cacheMap.put(key, node);
+    }
   }
 
   public Integer get(int key) {
     Integer result = null;
-    int index = getIndex(key);
-    if (index != -1){
-      cacheList.remove(index);
-      cacheList.add(key);
-      result = cacheMap.get(key);
+    Node node = cacheMap.get(key);
+    if (node != null){
+      moveElementToEnd(node);
+      result = node.value;
     }
     return result;
-  }
-
-  private int getIndex(int key) {
-    return cacheList.indexOf(key);
   }
 
   public int getSize() {
     return cacheMap.size();
   }
 
-  public String getListToString() {
-    StringBuilder builder = new StringBuilder();
-    for (Integer element : cacheList) {
-      builder.append(element).append(" ");
+  public String getStringValue() {
+    StringBuilder sb = new StringBuilder();
+    for (Node i = first; i != null; i = i.next) {
+      sb.append(i.key).append(" ");
     }
-    return builder.toString();
-  }
-
-  public Object[] getList() {
-    return cacheList.toArray();
+    return sb.toString();
   }
 }

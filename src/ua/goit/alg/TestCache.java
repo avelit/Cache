@@ -35,7 +35,25 @@ public class TestCache {
     cache.put(4,40);
     cache.put(5,50);
     cache.put(2,20);
-    Integer[] expectedResult = {1, 3, 4, 5, 2};
-    assertArrayEquals(expectedResult, cache.getList());
+    //String expectedResult = {1, 3, 4, 5, 2};
+    String expectedResult = "1 3 4 5 2 ";
+    assertEquals(expectedResult, cache.getStringValue());
   }
-}
+
+  @Test
+  public void testCacheEx() {
+    LRUCache cache = new LRUCache(5);
+    cache.put(2,1);
+    cache.get(2);
+    cache.put(3,2);
+    cache.get(2);
+    cache.get(3);
+    cache.put(4,2);
+    cache.put(5,2);
+    cache.put(6,2);
+    cache.put(7,2);
+    cache.put(8,2);
+    cache.put(7,2);
+    assertEquals(5, cache.getSize());
+  }
+ }
